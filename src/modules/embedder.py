@@ -19,6 +19,7 @@ class Embedder:
             os.mkdir(self.PATH)
 
     def storeDocEmbeds(self, file, filename):
+        return
         """
         Stores document embeddings using Langchain and FAISS
         """
@@ -43,6 +44,9 @@ class Embedder:
             pickle.dump(vectors, f)
 
     def getDocEmbeds(self, file, filename):
+        vector_db = FAISS.load_local("./embeddings/hybris_pdf_faiss_index", OpenAIEmbeddings())
+        return vector_db
+
         """
         Retrieves document embeddings
         """
