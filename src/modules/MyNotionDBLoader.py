@@ -1,10 +1,10 @@
 """Notion DB loader for langchain"""
-
+import itertools
 from typing import Any, Dict, List
-
 import requests
 
 from langchain.docstore.document import Document
+from langchain.document_loaders import PyPDFLoader, OnlinePDFLoader
 from langchain.document_loaders.base import BaseLoader
 
 NOTION_BASE_URL = "https://api.notion.com/v1"
@@ -12,6 +12,16 @@ DATABASE_URL = NOTION_BASE_URL + "/databases/{database_id}/query"
 PAGE_URL = NOTION_BASE_URL + "/pages/{page_id}"
 BLOCK_URL = NOTION_BASE_URL + "/blocks/{block_id}/children"
 TIMEOUT = 10000
+
+
+def _get_pdf_content(url_str: str, page_id: str) -> List[Document]:
+    if url_str.startswith("http"):
+        loader = PyPDFLoader(url_str)
+        # loader = OnlinePDFLoader(url_str)
+        pages = loader.load()
+        return pages
+    raise ValueError(f"Invalid URL of pdf: '{url_str}' at page_id: '{page_id}'")
+
 
 class MyNotionDBLoader(BaseLoader):
     """Notion DB Loader.
@@ -42,8 +52,7 @@ class MyNotionDBLoader(BaseLoader):
             List[Document]: List of documents.
         """
         page_ids = self._retrieve_page_ids()
-
-        return list(self.load_page(page_id) for page_id in page_ids)
+        return list(itertools.chain.from_iterable(self.load_page(page_id) for page_id in page_ids))
 
     def _retrieve_page_ids(
         self, query_dict: Dict[str, Any] = {"page_size": 100}
@@ -69,8 +78,9 @@ class MyNotionDBLoader(BaseLoader):
 
         return page_ids
 
-    def load_page(self, page_id: str) -> Document:
+    def load_page(self, page_id: str) -> List[Document]:
         """Read a page."""
+        is_pdf = False
         data = self._request(PAGE_URL.format(page_id=page_id))
 
         # load properties as metadata
@@ -107,6 +117,8 @@ class MyNotionDBLoader(BaseLoader):
                 value = (
                     prop_data["checkbox"]
                 )
+                if prop_name.lower() == "pdf" and value is True:
+                    is_pdf = True
             elif prop_type == "url":
                 value = (
                     prop_data["url"]
@@ -118,12 +130,21 @@ class MyNotionDBLoader(BaseLoader):
             metadata[prop_name.lower()] = value
 
         metadata["id"] = page_id
-        page_content = self._load_blocks(page_id)
+        page_content = self._load_blocks(block_id=page_id)
 
+        """ validate """
         if not page_content:
             raise ValueError(f"No content found for page_id: '{page_id}', title: '{metadata['title']}'")
+        if not metadata["source"]:
+            raise ValueError(f"source: '{metadata['source']} not found for page_id: '{page_id}', title: '{metadata['title']}'")
 
-        return Document(page_content=page_content, metadata=metadata)
+        if is_pdf:
+            print(f"\n\nLoading PDF '{metadata}'")
+            docs = _get_pdf_content(page_content, page_id)
+            return [Document(page_content=doc.page_content, metadata=metadata) for doc in docs]
+
+        return [Document(page_content=page_content, metadata=metadata)]
+
 
     def _load_blocks(self, block_id: str, num_tabs: int = 0) -> str:
         """Read a block and its children."""
@@ -136,6 +157,8 @@ class MyNotionDBLoader(BaseLoader):
             for result in data["results"]:
                 result_obj = result[result["type"]]
 
+                if result["type"] == "file" or result["type"] == "pdf":
+                    return result["file"]["file"]["url"]
                 if "rich_text" not in result_obj:
                     continue
 
@@ -149,7 +172,7 @@ class MyNotionDBLoader(BaseLoader):
 
                 if result["has_children"]:
                     children_text = self._load_blocks(
-                        result["id"], num_tabs=num_tabs + 1
+                        block_id=result["id"], num_tabs=num_tabs + 1
                     )
                     cur_result_text_arr.append(children_text)
 
@@ -158,7 +181,6 @@ class MyNotionDBLoader(BaseLoader):
             cur_block_id = data.get("next_cursor")
 
         return "\n".join(result_lines_arr)
-
 
     def _request(
         self, url: str, method: str = "GET", query_dict: Dict[str, Any] = {}

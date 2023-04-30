@@ -1,7 +1,6 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from io import BytesIO
 from io import StringIO
 import sys
 import re
@@ -12,14 +11,16 @@ from modules.layout import Layout
 from modules.utils import Utilities
 from modules.sidebar import Sidebar
 
-#To be able to update the changes made to modules in localhost,
-#you can press the "r" key on the localhost page to refresh and reflect the changes made to the module files.
+
+# To be able to update the changes made to modules in localhost,
+# you can press the "r" key on the localhost page to refresh and reflect the changes made to the module files.
 def reload_module(module_name):
     import importlib
     import sys
     if module_name in sys.modules:
         importlib.reload(sys.modules[module_name])
     return sys.modules[module_name]
+
 
 history_module = reload_module('modules.history')
 layout_module = reload_module('modules.layout')
@@ -31,13 +32,24 @@ Layout = layout_module.Layout
 Utilities = utils_module.Utilities
 Sidebar = sidebar_module.Sidebar
 
+uploaded_file = {'name': 'Hybris', 'type': 'text/csv', 'size': 0}
+
 
 def init():
     load_dotenv()
     st.set_page_config(layout="wide", page_icon="💬", page_title="ChatBot-CSV")
 
-def main():
+    if not st.session_state["chatbot"]:
+        st.session_state["model"] = os.environ.get("LLM_MODEL")
+        st.session_state["temperature"] = 1.0
+        chatbot = Utilities.setup_chatbot(
+            uploaded_file, st.session_state["model"], st.session_state["temperature"]
+        )
+        st.session_state["ready"] = True
+        st.session_state["chatbot"] = chatbot
 
+
+def main():
     init()
     layout, sidebar, utils = Layout(), Sidebar(), Utilities()
     layout.show_header()
@@ -47,20 +59,16 @@ def main():
         layout.show_api_key_missing()
     else:
         os.environ["OPENAI_API_KEY"] = user_api_key
-        uploaded_file = utils.handle_upload()
+        # uploaded_file = utils.handle_upload()
 
         if uploaded_file:
             history = ChatHistory()
             sidebar.show_options()
 
-            uploaded_file_content = BytesIO(uploaded_file.getvalue())
+            # uploaded_file_content = BytesIO(uploaded_file.getvalue())
+            uploaded_file_content = 'a'
 
             try:
-                chatbot = utils.setup_chatbot(
-                    uploaded_file, st.session_state["model"], st.session_state["temperature"]
-                )
-                st.session_state["chatbot"] = chatbot
-
                 if st.session_state["ready"]:
                     response_container, prompt_container = st.container(), st.container()
 
@@ -77,11 +85,11 @@ def main():
                             history.append("assistant", output)
 
                     history.generate_messages(response_container)
-                        
-                    if st.session_state["show_csv_agent"]:
-                        query = st.text_input(label="Use CSV agent for precise information about the structure of your csv file", placeholder="ex : how many rows in my file ?")
-                        if query != "":
 
+                    if st.session_state["show_csv_agent"]:
+                        query = st.text_input(label="Use CSV agent for precise information about the structure of your csv file",
+                                              placeholder="ex : how many rows in my file ?")
+                        if query != "":
                             old_stdout = sys.stdout
                             sys.stdout = captured_output = StringIO()
                             agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
@@ -103,6 +111,7 @@ def main():
                 st.error(f"Error: {str(e)}")
 
     sidebar.about()
+
 
 if __name__ == "__main__":
     main()

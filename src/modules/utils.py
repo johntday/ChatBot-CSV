@@ -5,6 +5,8 @@ import streamlit as st
 from modules.chatbot import Chatbot
 from modules.embedder import Embedder
 
+from load import fetch_vector_store
+
 
 class Utilities:
     @staticmethod
@@ -54,11 +56,12 @@ class Utilities:
         """
         Sets up the chatbot with the uploaded file, model, and temperature
         """
-        embeds = Embedder()
+        # embeds = Embedder()
         with st.spinner("Processing..."):
-            uploaded_file.seek(0)
-            file = uploaded_file.read()
-            vectors = embeds.getDocEmbeds(file, uploaded_file.name)
+            # uploaded_file.seek(0)
+            # file = uploaded_file.read()
+            vectors = fetch_vector_store("notion_hybris_faiss_index")
+            # vectors = embeds.getDocEmbeds(file, uploaded_file.name)
             chatbot = Chatbot(model, temperature, vectors)
         st.session_state["ready"] = True
         return chatbot

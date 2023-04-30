@@ -17,6 +17,8 @@ import argparse
 def load_notion_documents(notion_token, notion_database_id) -> List[Document]:
     loader = MyNotionDBLoader(notion_token, notion_database_id)
     documents = loader.load()
+    print(f"\nLoaded {len(documents)} documents from Notion")
+    print(f"\nFirst document: {documents[0]}")
     return documents
 
 
@@ -37,19 +39,24 @@ def split_documents(documents) -> List[Document]:
 
 
 def load_vector_store(documents, name) -> Any:
+    s_dir_path = f"embeddings/{name}/"
+    print(f"\nSaving '{s_dir_path}'")
+
     vector_db = FAISS.from_documents(documents, OpenAIEmbeddings())
 
-    s_dir_path = f"embeddings/{name}/"
     dir_path = Path(s_dir_path)
     if dir_path.exists() and dir_path.is_dir():
         shutil.rmtree(dir_path)
+        print(f"\nRemoved '{s_dir_path}'")
 
     vector_db.save_local(s_dir_path)
+    print(f"\nSaved '{s_dir_path}'")
     return vector_db
 
 
 def fetch_vector_store(name) -> Any:
     vector_db = FAISS.load_local(f"./embeddings/{name}", OpenAIEmbeddings())
+    print(f"\nLoaded '{name}'")
     return vector_db
 
 
@@ -64,11 +71,11 @@ if __name__ == '__main__':
     # if args.mode == 'notion':
     NOTION_TOKEN = os.getenv("NOTION_TOKEN")
     # NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
-    NOTION_DATABASE_ID = '620897a849004469a3f8feb71a8fd63c'
+    NOTION_DATABASE_ID = 'db0ee43b057247c9a897d8dd57ff34a3'
     docs = load_notion_documents(notion_token=NOTION_TOKEN, notion_database_id=NOTION_DATABASE_ID)
     doc_chunks = split_documents(docs)
-    name = 'notion_hybris_faiss_index'
-    db = load_vector_store(doc_chunks, name)
+    db_name = 'notion_hybris_faiss_index'
+    db = load_vector_store(doc_chunks, db_name)
     # elif args.mode == 'docs':
     #     docs = load_pdf_documents()
     #     doc_chunks = split_documents(docs)
