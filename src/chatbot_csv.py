@@ -37,9 +37,9 @@ uploaded_file = {'name': 'Hybris', 'type': 'text/csv', 'size': 0}
 
 def init():
     load_dotenv()
-    st.set_page_config(layout="wide", page_icon="💬", page_title="ChatBot-CSV")
+    st.set_page_config(layout="wide", page_icon="💬", page_title="Hybris ChatBot")
 
-    if not st.session_state["chatbot"]:
+    if not st.session_state.get("chatbot"):
         st.session_state["model"] = os.environ.get("LLM_MODEL")
         st.session_state["temperature"] = 1.0
         chatbot = Utilities.setup_chatbot(

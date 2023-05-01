@@ -60,7 +60,7 @@ class Utilities:
         with st.spinner("Processing..."):
             # uploaded_file.seek(0)
             # file = uploaded_file.read()
-            vectors = fetch_vector_store("notion_hybris_faiss_index")
+            vectors = fetch_vector_store()
             # vectors = embeds.getDocEmbeds(file, uploaded_file.name)
             chatbot = Chatbot(model, temperature, vectors)
         st.session_state["ready"] = True

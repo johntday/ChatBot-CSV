@@ -13,6 +13,8 @@ from modules.MyNotionDBLoader import MyNotionDBLoader
 from pathlib import Path
 import argparse
 
+DB_NAME = 'notion_hybris_faiss_index'
+
 
 def load_notion_documents(notion_token, notion_database_id) -> List[Document]:
     loader = MyNotionDBLoader(notion_token, notion_database_id)
@@ -38,7 +40,7 @@ def split_documents(documents) -> List[Document]:
     return document_chunks
 
 
-def load_vector_store(documents, name) -> Any:
+def load_vector_store(documents, name) -> FAISS:
     s_dir_path = f"embeddings/{name}/"
     print(f"\nSaving '{s_dir_path}'")
 
@@ -54,8 +56,23 @@ def load_vector_store(documents, name) -> Any:
     return vector_db
 
 
-def fetch_vector_store(name) -> Any:
-    vector_db = FAISS.load_local(f"./embeddings/{name}", OpenAIEmbeddings())
+def merge_vector_stores():
+    db1 = fetch_vector_store("notion_hybris_faiss_index")
+    db2 = fetch_vector_store("notion_hybris_faiss_index2")
+    db1.merge_from(db2)
+
+    dir_path = Path("embeddings/notion_hybris_faiss_index/")
+    if dir_path.exists() and dir_path.is_dir():
+        shutil.rmtree(dir_path)
+    dir_path = Path("embeddings/notion_hybris_faiss_index2/")
+    if dir_path.exists() and dir_path.is_dir():
+        shutil.rmtree(dir_path)
+
+    db1.save_local("embeddings/notion_hybris_faiss_index")
+
+
+def fetch_vector_store(name=DB_NAME) -> FAISS:
+    vector_db = FAISS.load_local(f"embeddings/{name}", OpenAIEmbeddings())
     print(f"\nLoaded '{name}'")
     return vector_db
 
@@ -71,11 +88,12 @@ if __name__ == '__main__':
     # if args.mode == 'notion':
     NOTION_TOKEN = os.getenv("NOTION_TOKEN")
     # NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
+
     NOTION_DATABASE_ID = 'db0ee43b057247c9a897d8dd57ff34a3'
     docs = load_notion_documents(notion_token=NOTION_TOKEN, notion_database_id=NOTION_DATABASE_ID)
     doc_chunks = split_documents(docs)
-    db_name = 'notion_hybris_faiss_index'
-    db = load_vector_store(doc_chunks, db_name)
+    db = load_vector_store(doc_chunks, DB_NAME)
+
     # elif args.mode == 'docs':
     #     docs = load_pdf_documents()
     #     doc_chunks = split_documents(docs)
@@ -88,3 +106,5 @@ if __name__ == '__main__':
     # SEARCH_K = int(os.getenv("K_SEARCH"))
     # results = db.similarity_search_with_score(query, k=SEARCH_K)
     # print(results)
+
+    # merge_vector_stores()

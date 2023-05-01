@@ -138,6 +138,9 @@ class MyNotionDBLoader(BaseLoader):
         if not metadata["source"]:
             raise ValueError(f"source: '{metadata['source']} not found for page_id: '{page_id}', title: '{metadata['title']}'")
 
+        if metadata["archived"]:
+            return []
+
         if is_pdf:
             print(f"\n\nLoading PDF '{metadata}'")
             docs = _get_pdf_content(page_content, page_id)
