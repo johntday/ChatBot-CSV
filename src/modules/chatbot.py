@@ -57,5 +57,6 @@ class Chatbot:
         print(*result['source_documents'], sep="\n\n")
 
         st.session_state["history"].append((query, result["answer"]))
+        st.session_state["chat_sources"] = result['source_documents']
 
         return result["answer"]

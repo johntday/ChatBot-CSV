@@ -14,6 +14,7 @@ from pathlib import Path
 import argparse
 
 DB_NAME = 'notion_hybris_faiss_index'
+DB_NAME2 = 'notion_hybris_faiss_index2'
 
 
 def load_notion_documents(notion_token, notion_database_id) -> List[Document]:
@@ -69,12 +70,20 @@ def merge_vector_stores():
         shutil.rmtree(dir_path)
 
     db1.save_local("embeddings/notion_hybris_faiss_index")
+    print("\nMerged finished")
 
 
 def fetch_vector_store(name=DB_NAME) -> FAISS:
     vector_db = FAISS.load_local(f"embeddings/{name}", OpenAIEmbeddings())
     print(f"\nLoaded '{name}'")
     return vector_db
+
+
+def test_search():
+    db = fetch_vector_store(DB_NAME)
+    query = "list of hybris capabilities"
+    results = db.similarity_search(query, k=1)
+    print(results)
 
 
 if __name__ == '__main__':
@@ -85,6 +94,9 @@ if __name__ == '__main__':
 
     load_dotenv(verbose=True)
 
+    merge_vector_stores()
+    exit(0)
+
     # if args.mode == 'notion':
     NOTION_TOKEN = os.getenv("NOTION_TOKEN")
     # NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
@@ -92,7 +104,8 @@ if __name__ == '__main__':
     NOTION_DATABASE_ID = 'db0ee43b057247c9a897d8dd57ff34a3'
     docs = load_notion_documents(notion_token=NOTION_TOKEN, notion_database_id=NOTION_DATABASE_ID)
     doc_chunks = split_documents(docs)
-    db = load_vector_store(doc_chunks, DB_NAME)
+    """ CHECK ON DB_NAME2 """
+    db = load_vector_store(doc_chunks, DB_NAME2)
 
     # elif args.mode == 'docs':
     #     docs = load_pdf_documents()
@@ -102,9 +115,5 @@ if __name__ == '__main__':
     # elif print('error: invalid mode'):
     #     exit(1)
 
-    # query = "list of hybris capabilities"
-    # SEARCH_K = int(os.getenv("K_SEARCH"))
-    # results = db.similarity_search_with_score(query, k=SEARCH_K)
-    # print(results)
 
     # merge_vector_stores()

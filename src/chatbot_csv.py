@@ -83,29 +83,30 @@ def main():
                             history.append("user", user_input)
                             output = st.session_state["chatbot"].conversational_chat(user_input)
                             history.append("assistant", output)
+                            sidebar.show_sources(st.session_state["chat_sources"])
 
                     history.generate_messages(response_container)
 
-                    if st.session_state["show_csv_agent"]:
-                        query = st.text_input(label="Use CSV agent for precise information about the structure of your csv file",
-                                              placeholder="ex : how many rows in my file ?")
-                        if query != "":
-                            old_stdout = sys.stdout
-                            sys.stdout = captured_output = StringIO()
-                            agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
-
-                            result = agent.run(query)
-
-                            sys.stdout = old_stdout
-                            thoughts = captured_output.getvalue()
-
-                            cleaned_thoughts = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', thoughts)
-                            cleaned_thoughts = re.sub(r'\[1m>', '', cleaned_thoughts)
-
-                            with st.expander("Afficher les pensées de l'agent"):
-                                st.write(cleaned_thoughts)
-
-                            st.write(result)
+                    # if st.session_state["show_csv_agent"] and uploaded_file_content != 'a':
+                    #     query = st.text_input(label="Use CSV agent for precise information about the structure of your csv file",
+                    #                           placeholder="ex : how many rows in my file ?")
+                    #     if query != "":
+                    #         old_stdout = sys.stdout
+                    #         sys.stdout = captured_output = StringIO()
+                    #         agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
+                    #
+                    #         result = agent.run(query)
+                    #
+                    #         sys.stdout = old_stdout
+                    #         thoughts = captured_output.getvalue()
+                    #
+                    #         cleaned_thoughts = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', thoughts)
+                    #         cleaned_thoughts = re.sub(r'\[1m>', '', cleaned_thoughts)
+                    #
+                    #         with st.expander("Afficher les pensées de l'agent"):
+                    #             st.write(cleaned_thoughts)
+                    #
+                    #         st.write(result)
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
