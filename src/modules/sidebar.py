@@ -69,7 +69,7 @@ class Sidebar:
             sources.write(f"### Source Fragment {i}")
             sources.write(f"[{metadata['title']}]({metadata['source']}) \
                 was published {metadata['published']} \
-                by {metadata['source id'][0]}")
+                by {metadata['source id']}")
             # if metadata['version'] != "":
             #     sources.write(f"Version: {metadata['version']}")
             sources.write(text)
