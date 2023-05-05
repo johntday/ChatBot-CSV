@@ -93,19 +93,16 @@ if __name__ == '__main__':
     # print(args.echo)
 
     load_dotenv(verbose=True)
+    # merge_vector_stores()
 
-    merge_vector_stores()
-    exit(0)
 
     # if args.mode == 'notion':
     NOTION_TOKEN = os.getenv("NOTION_TOKEN")
-    # NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
-
-    NOTION_DATABASE_ID = 'db0ee43b057247c9a897d8dd57ff34a3'
+    NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
     docs = load_notion_documents(notion_token=NOTION_TOKEN, notion_database_id=NOTION_DATABASE_ID)
     doc_chunks = split_documents(docs)
     """ CHECK ON DB_NAME2 """
-    db = load_vector_store(doc_chunks, DB_NAME2)
+    db = load_vector_store(doc_chunks, DB_NAME)
 
     # elif args.mode == 'docs':
     #     docs = load_pdf_documents()
@@ -116,4 +113,3 @@ if __name__ == '__main__':
     #     exit(1)
 
 
-    # merge_vector_stores()

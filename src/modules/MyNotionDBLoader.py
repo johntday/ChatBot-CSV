@@ -55,10 +55,23 @@ class MyNotionDBLoader(BaseLoader):
         return list(itertools.chain.from_iterable(self.load_page(page_id) for page_id in page_ids))
 
     def _retrieve_page_ids(
-        self, query_dict: Dict[str, Any] = {"page_size": 100}
+            self, query_dict: Dict[str, Any] = {"page_size": 100}
     ) -> List[str]:
         """Get all the pages from a Notion database."""
         pages: List[Dict[str, Any]] = []
+        query_dict = {
+            "filter": {
+                "and": [
+                    {
+                        "property": "Status",
+                        "checkbox": {
+                            "equals": False
+                        }
+                    }
+                ]
+            },
+            'page_size': 100
+        }
 
         while True:
             data = self._request(
@@ -75,6 +88,7 @@ class MyNotionDBLoader(BaseLoader):
             query_dict["start_cursor"] = data.get("next_cursor")
 
         page_ids = [page["id"] for page in pages]
+        print(f"Found {len(page_ids)} pages in Notion database {self.database_id}")
 
         return page_ids
 
@@ -148,7 +162,6 @@ class MyNotionDBLoader(BaseLoader):
 
         return [Document(page_content=page_content, metadata=metadata)]
 
-
     def _load_blocks(self, block_id: str, num_tabs: int = 0) -> str:
         """Read a block and its children."""
         result_lines_arr: List[str] = []
@@ -186,7 +199,7 @@ class MyNotionDBLoader(BaseLoader):
         return "\n".join(result_lines_arr)
 
     def _request(
-        self, url: str, method: str = "GET", query_dict: Dict[str, Any] = {}
+            self, url: str, method: str = "GET", query_dict: Dict[str, Any] = {}
     ) -> Any:
         res = requests.request(
             method,
