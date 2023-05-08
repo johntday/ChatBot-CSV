@@ -1,5 +1,6 @@
 """Notion DB loader for langchain"""
 import itertools
+import time
 from typing import Any, Dict, List
 import requests
 
@@ -12,6 +13,16 @@ DATABASE_URL = NOTION_BASE_URL + "/databases/{database_id}/query"
 PAGE_URL = NOTION_BASE_URL + "/pages/{page_id}"
 BLOCK_URL = NOTION_BASE_URL + "/blocks/{block_id}/children"
 TIMEOUT = 10000
+WAIT = 2
+METADATA_FILTER = ['id', 'title', 'tags', 'version', 'source id', 'published', 'source']
+
+
+def metadata_filter(pair: tuple) -> bool:
+    key, value = pair
+    if key in METADATA_FILTER:
+        return True
+    else:
+        return False
 
 
 def _get_pdf_content(url_str: str, page_id: str) -> List[Document]:
@@ -63,9 +74,15 @@ class MyNotionDBLoader(BaseLoader):
             "filter": {
                 "and": [
                     {
-                        "property": "Status",
+                        "property": "Pub",
                         "checkbox": {
-                            "equals": False
+                            "equals": True
+                        }
+                    },
+                    {
+                        "property": "Status",
+                        "select": {
+                            "does_not_equal": "Published"
                         }
                     }
                 ]
@@ -152,15 +169,21 @@ class MyNotionDBLoader(BaseLoader):
         if not metadata["source"]:
             raise ValueError(f"source: '{metadata['source']} not found for page_id: '{page_id}', title: '{metadata['title']}'")
 
-        if metadata["archived"]:
+        """ check status """
+        if metadata["status"] in ["Archived", "Indexed"]:
             return []
+
+        """ filter metadata """
+        metadata_filtered = dict(filter(metadata_filter, metadata.items()))
 
         if is_pdf:
             print(f"\n\nLoading PDF '{metadata}'")
             docs = _get_pdf_content(page_content, page_id)
-            return [Document(page_content=doc.page_content, metadata=metadata) for doc in docs]
+            return [Document(page_content=doc.page_content, metadata=metadata_filtered) for doc in docs]
+        else:
+            print(f"\n\nLoading Notion Page '{metadata}'")
 
-        return [Document(page_content=page_content, metadata=metadata)]
+        return [Document(page_content=page_content, metadata=metadata_filtered)]
 
     def _load_blocks(self, block_id: str, num_tabs: int = 0) -> str:
         """Read a block and its children."""
@@ -201,6 +224,9 @@ class MyNotionDBLoader(BaseLoader):
     def _request(
             self, url: str, method: str = "GET", query_dict: Dict[str, Any] = {}
     ) -> Any:
+        if WAIT is not None:
+            time.sleep(WAIT)
+        # fixme: add retry
         res = requests.request(
             method,
             url,

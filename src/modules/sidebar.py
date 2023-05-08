@@ -57,14 +57,15 @@ class Sidebar:
             st.session_state.setdefault("temperature", self.TEMPERATURE_DEFAULT_VALUE)
 
     def show_sources(self, chat_sources):
-        sources = st.sidebar.expander("🛠️ Sources for Answer", expanded=True)
+        sources = st.sidebar.expander("🛠️ Top-K Sources for Answer", expanded=True)
         sources.empty()
         i = 0
         for chat_source in chat_sources:
             i += 1
             page_content = chat_source.page_content
             metadata = chat_source.metadata
-            text = page_content.replace("\n", " ").replace("\ue05c", " ").replace("\x00", "").replace("\'", "'")
+            # text = page_content.replace("\n", " ").replace("\ue05c", " ").replace("\x00", "").replace("\'", "'")
+            text = page_content
 
             sources.write(f"### Source Fragment {i}")
             sources.write(f"[{metadata['title']}]({metadata['source']}) \
@@ -75,16 +76,6 @@ class Sidebar:
             sources.write(text)
             sources.write()
 
-    @staticmethod
-    def format_page_content(sources, chat_source, i):
-        page_content = chat_source.page_content
-        text = page_content.replace("\n", " ").replace("\ue05c", " ").replace("\x00", "")
-
-        sources.write(f"#### Source Fragment {i}")
-        sources.write(text)
-        sources.write()
-        i += 1
-        return i
 
 
 """    def csv_agent(self, ):

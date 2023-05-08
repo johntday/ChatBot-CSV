@@ -5,7 +5,7 @@ import streamlit as st
 from modules.chatbot import Chatbot
 from modules.embedder import Embedder
 
-from load import fetch_vector_store
+from load import faiss_fetch_vector_store
 
 
 class Utilities:
@@ -60,7 +60,7 @@ class Utilities:
         with st.spinner("Processing..."):
             # uploaded_file.seek(0)
             # file = uploaded_file.read()
-            vectors = fetch_vector_store()
+            vectors = faiss_fetch_vector_store()
             # vectors = embeds.getDocEmbeds(file, uploaded_file.name)
             chatbot = Chatbot(model, temperature, vectors)
         st.session_state["ready"] = True
