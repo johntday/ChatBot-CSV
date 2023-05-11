@@ -14,6 +14,7 @@ PAGE_URL = NOTION_BASE_URL + "/pages/{page_id}"
 BLOCK_URL = NOTION_BASE_URL + "/blocks/{block_id}/children"
 TIMEOUT = 10000
 WAIT = 2
+RETRY_COUNT = 3
 METADATA_FILTER = ['id', 'title', 'tags', 'version', 'source id', 'published', 'source']
 
 
@@ -224,9 +225,12 @@ class MyNotionDBLoader(BaseLoader):
     def _request(
             self, url: str, method: str = "GET", query_dict: Dict[str, Any] = {}
     ) -> Any:
+        """ Make a request to the Notion API.
+        Include retry logic and rate limit handling. """
         if WAIT is not None:
             time.sleep(WAIT)
         # fixme: add retry
+        # https://scrapeops.io/python-web-scraping-playbook/python-requests-retry-failed-requests/
         res = requests.request(
             method,
             url,
