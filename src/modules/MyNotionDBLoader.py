@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 import requests
 
 from langchain.docstore.document import Document
-from langchain.document_loaders import PyPDFLoader, OnlinePDFLoader
+from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders.base import BaseLoader
 
 NOTION_BASE_URL = "https://api.notion.com/v1"
@@ -227,16 +227,24 @@ class MyNotionDBLoader(BaseLoader):
     ) -> Any:
         """ Make a request to the Notion API.
         Include retry logic and rate limit handling. """
-        if WAIT is not None:
-            time.sleep(WAIT)
-        # fixme: add retry
         # https://scrapeops.io/python-web-scraping-playbook/python-requests-retry-failed-requests/
-        res = requests.request(
-            method,
-            url,
-            headers=self.headers,
-            json=query_dict,
-            timeout=TIMEOUT,
-        )
-        res.raise_for_status()
-        return res.json()
+        for _ in range(RETRY_COUNT):
+            if WAIT is not None:
+                time.sleep(WAIT)
+
+            try:
+                response = requests.request(
+                    method,
+                    url,
+                    headers=self.headers,
+                    json=query_dict,
+                    timeout=TIMEOUT,
+                )
+                # response.raise_for_status()
+                if response.status_code in [429, 500, 502, 503, 504]:
+                    print(f"Got {response.status_code} from Notion API. Retrying...")
+                    continue
+                return response.json()
+            except requests.exceptions.ConnectionError:
+                pass
+            return None

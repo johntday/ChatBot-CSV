@@ -6,7 +6,7 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS, Chroma
+from langchain.vectorstores import FAISS
 from typing import Any, List
 from langchain.docstore.document import Document
 from modules.MyNotionDBLoader import MyNotionDBLoader
@@ -40,7 +40,9 @@ def replace_non_ascii(doc: Document) -> Document:
     """
     Replaces non-ascii characters with ascii characters
     """
-    return Document(page_content="".join([i if ord(i) < 128 else " " for i in doc.page_content]), metadata=doc.metadata)
+    page_content = doc.page_content.replace("\ue05c", "fi").replace("\x00", "")
+    # return Document(page_content="".join([i if ord(i) < 128 else " " for i in page_content]), metadata=doc.metadata)
+    return Document(page_content=page_content, metadata=doc.metadata)
 
 
 def split_documents(documents) -> List[Document]:

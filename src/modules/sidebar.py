@@ -4,23 +4,32 @@ import streamlit as st
 
 
 class Sidebar:
-    MODEL_OPTIONS = ["gpt-3.5-turbo"]
+    MODEL_OPTIONS = ["gpt-3.5-turbo", "gpt-4"]
     TEMPERATURE_MIN_VALUE = 0.0
     TEMPERATURE_MAX_VALUE = 1.0
     TEMPERATURE_DEFAULT_VALUE = 0.0
     TEMPERATURE_STEP = 0.01
 
     @staticmethod
-    def about():
-        about = st.sidebar.expander("About 🤖")
+    def about(app_name: str):
+        about = st.sidebar.expander("🤖 About")
         sections = [
-            "- ChatBot-CSV is an AI chatbot featuring conversational memory, designed to enable users to discuss their CSV data in a more intuitive manner. 📄",
-            "- He employs large language models to provide users with seamless, context-aware natural language interactions for a better understanding of their CSV data. 🌐",
-            "- Powered by [Langchain](https://github.com/hwchase17/langchain), [OpenAI](https://platform.openai.com/docs/models/gpt-3-5) and [Streamlit](https://github.com/streamlit/streamlit) ⚡",
-            "- Source code : [yvann-hub/ChatBot-CSV](https://github.com/yvann-hub/ChatBot-CSV)",
+            f"- {app_name} is an AI chatbot with Hybris knowledge.  It has been trained on the following sources of Hybris documentation: "
+            "[SAP Hybris Help v2211](https://help.sap.com/docs/SAP_COMMERCE_CLOUD_PUBLIC_CLOUD?version=v2211), "
+            "[Hybrismart Articles](https://hybrismart.com), "
+            "[Coveo](https://docs.coveo.com/en/), "
+            "[CX Works](https://www.sap.com/cxworks/expert-recommendations/articles/commerce-cloud.html), "
+            "[Worldpay SAP Hybris Addon](https://github.com/Worldpay/hybris)",
+            "- The app is created with the following Python packages: "
+            "[Langchain](https://github.com/hwchase17/langchain), "
+            "[OpenAI](https://platform.openai.com/docs/models/gpt-3-5) and "
+            "[Streamlit](https://github.com/streamlit/streamlit)",
+            "- The app is inspired by [yvann-hub/ChatBot-CSV](https://github.com/yvann-hub/ChatBot-CSV)",
         ]
         for section in sections:
             about.write(section)
+
+    # fixme: create usage
 
     @staticmethod
     def reset_chat_button():
@@ -57,7 +66,7 @@ class Sidebar:
             st.session_state.setdefault("temperature", self.TEMPERATURE_DEFAULT_VALUE)
 
     def show_sources(self, chat_sources):
-        sources = st.sidebar.expander("🛠️ Top-K Sources for Answer", expanded=True)
+        sources = st.sidebar.expander("🛠️ Top Sources for Answer", expanded=True)
         sources.empty()
         i = 0
         for chat_source in chat_sources:

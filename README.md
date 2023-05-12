@@ -1,4 +1,6 @@
-# ChatBot-CSV 🤖
+# Hybris Chatbot
+
+# fixme
 
 ### An AI chatbot featuring conversational memory, designed to enable users to discuss their CSV data in a more intuitive manner. 📄
 By integrating the strengths of Langchain and OpenAI, ChatBot-CSV employs large language models to provide users with seamless, context-aware natural language interactions for a better understanding of their CSV data.🧠
@@ -8,13 +10,7 @@ To use ChatBot-CSV, simply visit the following link :
 
 ### [chatbot-csv.com](https://chatbot-csv.com/)
 
-## Task List 📝:
-- [x] Implementation of CSV agent (enable precises responses on the csv file structure)
-- [ ] Load multiples csv files in the  chatbot
-- [ ] Custom prompt for the chatbot (let the user choose the behavior of the chatbot)
-- [ ] Rebuild the site in typescript instead of streamlit
-- [ ] add a database and a login for the user to have a permanent chatbot on these csv data
-## Running Locally 💻
+## How to Run Locally 💻
 Follow these steps to set up and run the service locally :
 
 ### Prerequisites

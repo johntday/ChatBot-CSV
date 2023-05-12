@@ -1,11 +1,6 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from io import StringIO
-import sys
-import re
-from langchain.agents import create_csv_agent
-from langchain.chat_models import ChatOpenAI
 from modules.history import ChatHistory
 from modules.layout import Layout
 from modules.utils import Utilities
@@ -54,6 +49,7 @@ def main():
     layout, sidebar, utils = Layout(), Sidebar(), Utilities()
     layout.show_header()
     user_api_key = utils.load_api_key()
+    app_name = os.getenv("APP_NAME")
 
     if not user_api_key:
         layout.show_api_key_missing()
@@ -111,7 +107,7 @@ def main():
             except Exception as e:
                 st.error(f"Error: {str(e)}")
 
-    sidebar.about()
+    sidebar.about(app_name)
 
 
 if __name__ == "__main__":
