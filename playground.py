@@ -1,19 +1,9 @@
 import os
-import shutil
-import warnings
 
 from dotenv import load_dotenv
 from langchain import OpenAI
-from langchain.document_loaders import PyPDFLoader
-from langchain.document_loaders import DirectoryLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from typing import Any, List
-from langchain.docstore.document import Document
-from modules.MyNotionDBLoader import MyNotionDBLoader
-from pathlib import Path
-import argparse
 
 DB_NAME = 'notion_hybris_faiss_index'
 

@@ -7,11 +7,10 @@ from langchain.document_loaders import DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from typing import Any, List
+from typing import List
 from langchain.docstore.document import Document
 from modules.MyNotionDBLoader import MyNotionDBLoader
 from pathlib import Path
-import argparse
 
 DB_NAME = 'notion_hybris_faiss_index'
 DB_NAME2 = 'notion_hybris_faiss_index2'
